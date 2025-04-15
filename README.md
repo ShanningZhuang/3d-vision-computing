@@ -1,39 +1,62 @@
-# CS149 Parallel Computing
+# 3D Vision Computing
 
-This repo contains all the learning materials for the Stanford CS149 course : Parallel Computing.
+This repository contains learning materials for the 3D Vision Computing course.
 
-The professor [Kayvon Fatahalian](http://www.cs.cmu.edu/~kayvonf) used to teach the same course in CMU (called 15-418). So you can  go to the CMU 15-418's [official website](http://15418.courses.cs.cmu.edu/spring2016/lectures) to watch the course videos.
+## Course Overview
 
-The CS149's website is [here](http://cs149.stanford.edu/fall20/) which has links to github repo of the programming assignments.
+3D Vision Computing is a field that combines computer vision, computer graphics, and machine learning to understand and process three-dimensional visual data. This course covers fundamental concepts and practical applications in 3D vision, including:
+
+- 3D reconstruction
+- Depth estimation
+- Point cloud processing
+- 3D object detection and recognition
+- Neural rendering
+- 3D scene understanding
 
 ## Course Resources
 
 ### Introduction
 
-You can go to the course website to see the syllabus. The 15-418 version is more comprehensive and talks many topics which is not included in the CS149 version. 
+The goal of this course is to provide a comprehensive understanding of 3D vision computing techniques and their applications. Students will learn both theoretical foundations and practical implementation skills for working with 3D visual data.
 
-The goal of this course is to provide a deep understanding of the fundamental principles and engineering trade-offs involved in designing modern parallel computing systems as well as to teach parallel programming techniques necessary to effectively utilize these machines. Because writing good parallel programs requires an understanding of key machine performance characteristics, this course will cover both parallel hardware and software design.
+### Assignments
 
-### Written Assignments
+The course includes several hands-on assignments that cover different aspects of 3D vision computing:
 
-I only find the 2020 spring written assignments with solution. You can find it in the [exercises](./exercieses) folder.
+1. 3D Reconstruction
+2. Depth Estimation
+3. Point Cloud Processing
+4. 3D Object Detection
+5. Neural Rendering
 
-### Programming Assignments
+### Projects
 
-There are five programming assignments in total. You can find my implementaion in the following links.
+Students will work on practical projects that apply 3D vision computing techniques to real-world problems. These projects may include:
 
-[Assignment 1: Analyzing Parallel Program Performance on a Quad-Core CPU](https://github.com/PKUFlyingPig/asst1)
+- 3D scene reconstruction from images
+- Depth estimation from monocular or stereo images
+- 3D object detection and tracking
+- Neural rendering applications
 
-[Assignment 2: Scheduling Task Graphs](https://github.com/PKUFlyingPig/asst2)
+## Learning Materials
 
-[Assignment 3: A Simple Renderer in CUDA](https://github.com/PKUFlyingPig/asst3)
+Course materials include:
+- Lecture notes and slides
+- Programming assignments
+- Research papers and readings
+- Tutorials and practical examples
 
-[Assignment 4: Big Graph Processing in OpenMP](https://github.com/PKUFlyingPig/asst4)
+## Prerequisites
 
-### Exams
+Students should have:
+- Basic knowledge of computer vision
+- Programming experience (Python preferred)
+- Understanding of linear algebra and calculus
+- Familiarity with deep learning concepts
 
-There are two exams in total. You can find them with solution in the [exams](./exams) folder.
+## Want to learn more?
 
-## Want to learn more ?
-
-Check out [this repository](https://github.com/PKUFlyingPig/Self-learning-Computer-Science) which contains all my self-learning materials : )
+Check out these additional resources:
+- [Open3D](https://www.open3d.org/) - A modern library for 3D data processing
+- [PyTorch3D](https://pytorch3d.org/) - PyTorch library for 3D deep learning
+- [NeRF](https://www.matthewtancik.com/nerf) - Neural Radiance Fields

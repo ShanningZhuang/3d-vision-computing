@@ -31,6 +31,8 @@ def create_ellipsoid_mesh(a=1, b=1, c=0.5, resolution=50):
     
     # Create mesh
     mesh = o3d.geometry.TriangleMesh()
+    # Vector3dVector: 3D vector of double
+    # Vector3iVector: 3D vector of int
     mesh.vertices = o3d.utility.Vector3dVector(np.array(vertices))
     mesh.triangles = o3d.utility.Vector3iVector(np.array(triangles))
     mesh.compute_vertex_normals()
