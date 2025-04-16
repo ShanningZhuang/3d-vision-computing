@@ -26,7 +26,7 @@ To visualize the curve in 3D space, you can show sampled 3D points from the curv
 
 The differential of a function $f$ at a point **p** is a linear map. Equivalent to how we define the differential in class, we can also define it by the gradient of the curve w.r.t. the curve parameter:  
 $$
-D f_{\mathbf{p}}(\mathbf{v}) = \left. \frac{d}{dt} f(\gamma(t)) \right|_{t=0}.
+D f_{\mathbf{p}}(\mathbf{v}) = \left. f(\gamma(t))' \right|_{t=0}
 $$
 
 **(a)** What is $D f_{\mathbf{p}}$? Express it as a matrix.
@@ -40,3 +40,35 @@ $\mathbf{p} = \left( \frac{\pi}{4}, \frac{\pi}{6} \right)$ and $\mathbf{v} = (1,
 
 **(e)** **[Programming Assignment]** Give a group of orthonormal bases of the tangent space at $f(\mathbf{p})$ when  
 $\mathbf{p} = \left( \frac{\pi}{4}, \frac{\pi}{6} \right)$, and draw it on the ellipsoid.
+
+### 3. **Normal:**
+
+Given $\mathbf{p} = \left( \frac{\pi}{4}, \frac{\pi}{6} \right)$ and $\mathbf{v} = (1, 0)$.  
+For simplicity, let $g_{\mathbf{v}}(t) = f(\gamma(t))$ denote the curve which passes through $\mathbf{p}$ at $t = 0$.
+
+**(a)** What is the arc length $s(t)$ as the point moves from $g_{\mathbf{v}}(0)$ to $g_{\mathbf{v}}(t)$?
+
+**(b)** Give the arc-length parameterization $h_{\mathbf{v}}(s)$ of the curve.
+
+**(c)** What is the normal vector of the curve at a point $h_{\mathbf{v}}(s)$?  
+*Hint:* Use $h_{\mathbf{v}}(s)$ to derive the normal.
+
+> **Note:** $h_{\mathbf{v}}(0)$ is the point $\mathbf{p}$.  
+> If you compare the curve normal you get in 3(c) with the surface normal in 2(d) at $s = 0$,  
+> you can find that they are different.
+
+### 4. **Curvature:**
+
+In 2(d), you have computed the normal at **p**. Denote this normal as $N_{\mathbf{p}}$.
+
+**(a)** Compute the differential of the normal $DN_{\mathbf{p}}$, and express it as a matrix.  
+*Hint:* You can use WolframAlpha to compute complicated derivatives that you don’t want to compute by hand.
+
+**(b)** Find the eigenvectors of the shape operator at **p**.  
+*Hint:* You can show the shape operator is diagonal (What does it tell you about the eigenvectors?).
+
+**(c)** **[Programming Assignment]** Draw the two principal curvature directions in the tangent plane of the ellipsoid at  
+$\mathbf{p} = \left( \frac{\pi}{4}, \frac{\pi}{6} \right)$.
+
+**(d)** Compute the Gaussian curvature of the surface $f$ at  
+$\mathbf{p} = \left( \frac{\pi}{4}, \frac{\pi}{6} \right)$, and demonstrate that ellipsoid $f$ doesn’t show isometric invariance with any spherical surface.
