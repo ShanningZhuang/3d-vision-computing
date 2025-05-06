@@ -709,7 +709,7 @@ point cloud and 3D mesh. All questions are programming assignments.
    of $f$). Since $f$ can be arbitrarily defined, $\xi_u$ and $\xi_v$ can be defined as
    orthogonal vectors for simplicity.
 
-   ![Figure 1: Assumptions in Rusinkiewicz's method.](figure1.png)
+   ![Figure 1: Assumptions in Rusinkiewicz's method.](./HW1Q2/HW1Q2figure1.png)
 
    Let $DN = [\frac{\partial \vec{n}}{\partial u}, \frac{\partial \vec{n}}{\partial v}] \in \mathbb{R}^{3 \times 2}$ denote the first-order derivative of the normal.
    For each point on the surface, we define $S \in \mathbb{R}^{2 \times 2}$ that satisfies $DN =

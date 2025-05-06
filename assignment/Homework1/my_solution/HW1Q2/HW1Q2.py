@@ -13,7 +13,7 @@ import os # To create output directory if needed
 # ==============================================================================
 print("--- Processing Part 1-3 (saddle.obj) ---")
 # Define the path to your mesh file
-mesh_file_saddle = '../saddle.obj'
+mesh_file_saddle = '../../saddle.obj'
 num_points_to_sample = 100000
 
 # Load the mesh from the .obj file
@@ -45,11 +45,11 @@ print(f"Successfully sampled {points.shape[0]} points from the mesh surface.")
 print("First 5 sampled points:\n", points[:5])
 
 # --- Save the 100k points ---
-output_npy_file_100k = '../saddle_sampled_100k_points.npy'
+output_npy_file_100k = './saddle_sampled_100k_points.npy'
 np.save(output_npy_file_100k, points)
 print(f"Sampled 100k points saved to {output_npy_file_100k}")
 
-output_ply_file_100k = '../saddle_sampled_100k_points.ply'
+output_ply_file_100k = './saddle_sampled_100k_points.ply'
 point_cloud_100k = trimesh.points.PointCloud(points)
 try:
     point_cloud_100k.export(output_ply_file_100k)
@@ -124,11 +124,11 @@ print(f"Shape of sampled points: {sampled_points_fps.shape}")
 print("First 5 FPS sampled points:\n", sampled_points_fps[:5])
 
 # --- Save the FPS sampled points ---
-output_fps_npy_file = '../saddle_fps_4k_points.npy'
+output_fps_npy_file = './saddle_fps_4k_points.npy'
 np.save(output_fps_npy_file, sampled_points_fps)
 print(f"FPS sampled points saved to {output_fps_npy_file}")
 
-output_fps_ply_file = '../saddle_fps_4k_points.ply'
+output_fps_ply_file = './saddle_fps_4k_points.ply'
 point_cloud_fps = trimesh.points.PointCloud(sampled_points_fps)
 try:
     point_cloud_fps.export(output_fps_ply_file)
@@ -188,7 +188,7 @@ norms[norms == 0] = 1.0
 unit_normals = estimated_normals / norms
 
 # Save as PLY file with normals
-output_ply_with_normals = '../saddle_fps_4k_points_with_normals.ply'
+output_ply_with_normals = './saddle_fps_4k_points_with_normals.ply'
 point_cloud_with_normals = trimesh.points.PointCloud(vertices=sampled_points_fps, vertex_normals=unit_normals)
 try:
     point_cloud_with_normals.export(output_ply_with_normals)
@@ -197,7 +197,7 @@ except Exception as e:
     print(f"Error saving PLY with normals: {e}")
 
 # Save normals separately as NPY
-output_normals_npy_file = '../saddle_fps_4k_normals.npy'
+output_normals_npy_file = './saddle_fps_4k_normals.npy'
 np.save(output_normals_npy_file, unit_normals)
 print(f"Estimated normals saved to {output_normals_npy_file}")
 
@@ -327,8 +327,8 @@ def plot_curvature_histograms(k1, k2, K, mesh_name, output_dir='../curvature_res
 
 # --- Execute Curvature Estimation ---
 # Assuming the script is in my_solution, the data is one level up
-mesh_files_curvature = ['../icosphere.obj', '../sievert.obj']
-output_curvature_dir = '../curvature_results' # Define output dir here
+mesh_files_curvature = ['../../icosphere.obj', '../../sievert.obj']
+output_curvature_dir = './curvature_results' # Define output dir here
 
 for file_path in mesh_files_curvature:
     if not os.path.exists(file_path):
