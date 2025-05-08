@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Vision Computing Cheatsheet</title>
+    <meta charset="UTF-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 8pt;
+            margin: 0;
+            padding: 10px;
+            column-count: 2;
+            column-gap: 15px;
+            line-height: 1.2;
+        }
+        h1 {
+            font-size: 11pt;
+            margin: 0 0 5px 0;
+            page-break-after: avoid;
+            column-span: all;
+        }
+        h2 {
+            font-size: 10pt;
+            margin: 8px 0 3px 0;
+            break-after: avoid;
+        }
+        h3 {
+            font-size: 9pt;
+            margin: 5px 0 2px 0;
+            break-after: avoid;
+        }
+        p, ul {
+            margin: 0 0 3px 0;
+            padding-left: 15px;
+        }
+        ul {
+            padding-left: 18px;
+        }
+        li {
+            margin-bottom: 2px;
+        }
+        .formula {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        code {
+            font-family: Consolas, monospace;
+            font-size: 7pt;
+            background-color: #f5f5f5;
+            padding: 1px 2px;
+            border-radius: 2px;
+        }
+        pre {
+            font-family: Consolas, monospace;
+            font-size: 7pt;
+            margin: 0;
+            padding: 3px;
+            background-color: #f5f5f5;
+            border-radius: 2px;
+            overflow-x: auto;
+        }
+        .page-break {
+            break-after: page;
+        }
+        @media print {
+            body {
+                size: A4;
+                margin: 10mm;
+            }
+            .page2 {
+                page-break-before: always;
+            }
+        }
+    </style>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <h1>3D Vision Computing Cheatsheet</h1>
+
+    <!-- PAGE 1 -->
+    <div class="page1">
+        <h2>1. Surface Computing</h2>
+
+        <h3>Surface Parameterization & Differential Maps</h3>
+        <ul>
+            <li><b>Ellipsoid</b>: \(f(u,v) = (a\cos u \sin v, b\sin u \sin v, c\cos v)\)</li>
+            <li><b>Differential Map</b>: \(Df_p = \begin{bmatrix} \frac{\partial f}{\partial u} & \frac{\partial f}{\partial v} \end{bmatrix}\) = Jacobian matrix</li>
+            <li><b>Tangent Vectors</b>: \(\vec{t}_u = \frac{\partial f}{\partial u}\), \(\vec{t}_v = \frac{\partial f}{\partial v}\)</li>
+            <li><b>Normal Vector</b>: \(\vec{n} = \vec{t}_u \times \vec{t}_v\) (normalized)</li>
+        </ul>
+
+        <h3>Curvature</h3>
+        <ul>
+            <li><b>Arc Length</b>: \(s(t) = \int_0^t ||g_v'(\tau)|| d\tau\)</li>
+            <li><b>Principal Normal</b>: \(N(s) = \frac{T'(s)}{||T'(s)||}\), where \(T(s) = h_v'(s)\)</li>
+            <li><b>Shape Operator</b>: \(S_p = -dN_p\), eigenvalues = principal curvatures</li>
+            <li><b>First Fundamental Form</b>: \(I = \begin{bmatrix} E & F \\ F & G \end{bmatrix}\) where \(E=\vec{t}_u \cdot \vec{t}_u\), \(F=\vec{t}_u \cdot \vec{t}_v\), \(G=\vec{t}_v \cdot \vec{t}_v\)</li>
+            <li><b>Second Fundamental Form</b>: \(II = \begin{bmatrix} L & M \\ M & N \end{bmatrix}\) where \(L=\vec{n} \cdot \vec{t}_{uu}\), \(M=\vec{n} \cdot \vec{t}_{uv}\), \(N=\vec{n} \cdot \vec{t}_{vv}\)</li>
+            <li><b>Gaussian Curvature</b>: \(K = \frac{\det(II)}{\det(I)} = k_1 k_2\) (product of principal curvatures)</li>
+        </ul>
+
+        <h3>Rusinkiewicz's Method for Face Curvature</h3>
+        <ol>
+            <li>Load vertices \(p_i\), vertex normals \(\vec{n}_i\), face normal \(\vec{n}\)</li>
+            <li>Select orthogonal vectors \(\xi_u\), \(\xi_v\) on tangent plane</li>
+            <li>Build \(Df = [\xi_u, \xi_v]\), solve: \(SDf^T(p_j - p_i) = Df^T(\vec{n}_j - \vec{n}_i)\) for \(S\)</li>
+            <li>Compute eigenvalues of \(S\) for principal curvatures</li>
+        </ol>
+
+        <h2>2. 3D Geometry Processing</h2>
+
+        <h3>Point Cloud Operations</h3>
+        <ul>
+            <li><b>Uniform Sampling</b>: Use Open3d/Trimesh to sample uniformly on mesh</li>
+            <li><b>Farthest Point Sampling (FPS)</b>:
+<pre>function FPS(P, k):
+    S = [random point from P]
+    for i = 1 to k-1:
+        distances = min_dist(P, S)  # Min distance to set S
+        next_point = argmax(distances)
+        S.append(P[next_point])
+    return S
+</pre>
+            </li>
+            <li><b>Normal Estimation by PCA</b>:
+                <ol>
+                    <li>Find k-nearest neighbors for each point</li>
+                    <li>Compute covariance matrix of neighbors</li>
+                    <li>Perform PCA (eigenvector with smallest eigenvalue = normal)</li>
+                    <li>Orient normals consistently (e.g., toward +Y)</li>
+                </ol>
+            </li>
+        </ul>
+
+        <h2>3. Rotation</h2>
+
+        <h3>Quaternions</h3>
+        <ul>
+            <li><b>Unit quaternion</b>: \(q = w + xi + yj + zk\), where \(w^2+x^2+y^2+z^2=1\)</li>
+            <li><b>Rotation matrix from quaternion</b>:
+                \(M(q) = \begin{bmatrix} 
+                1-2(y^2+z^2) & 2(xy-wz) & 2(xz+wy) \\
+                2(xy+wz) & 1-2(x^2+z^2) & 2(yz-wx) \\
+                2(xz-wy) & 2(yz+wx) & 1-2(x^2+y^2)
+                \end{bmatrix}\)
+            </li>
+            <li><b>Exponential coordinates</b>: \(\omega = \theta \mathbf{v}\) (axis-angle)</li>
+            <li><b>Quaternion from axis-angle</b>: \(q = \cos(\theta/2) + \mathbf{v}\sin(\theta/2)\)</li>
+        </ul>
+
+        <h3>Skew-Symmetric Representation</h3>
+        <ul>
+            <li><b>Skew matrix</b>: \([\omega] = \begin{bmatrix} 0 & -\omega_z & \omega_y \\ \omega_z & 0 & -\omega_x \\ -\omega_y & \omega_x & 0 \end{bmatrix}\)</li>
+            <li><b>Rodrigues' formula</b>: \(R = \exp([\omega]) = I + \frac{\sin\theta}{\theta}[\omega] + \frac{1-\cos\theta}{\theta^2}[\omega]^2\)</li>
+            <li><b>Note</b>: \(\exp([\omega_1] + [\omega_2]) \neq \exp([\omega_1])\exp([\omega_2])\) unless \([\omega_1][\omega_2] = [\omega_2][\omega_1]\)</li>
+        </ul>
+
+        <h3>Double-Covering Property</h3>
+        <ul>
+            <li>For quaternion \(q\) with exponential coordinates \(\omega = \theta\mathbf{v}\)</li>
+            <li>\(-q\) has exponential coordinates \((2\pi-\theta)(-\mathbf{v})\)</li>
+        </ul>
+
+        <h2>4. Shape Approximation</h2>
+
+        <h3>Volume Estimation</h3>
+        <ul>
+            <li><b>Voxelization</b>: Count voxels × voxel volume</li>
+            <li><b>Monte Carlo with SDF</b>:
+                <ol>
+                    <li>Sample points in bounding box</li>
+                    <li>Classify inside/outside using SDF</li>
+                    <li>Volume ≈ (ratio of inside points) × (bounding box volume)</li>
+                </ol>
+            </li>
+        </ul>
+
+        <h3>Intersection Volume</h3>
+        <ul>
+            <li><b>Voxelization</b>: Count overlapping voxels × voxel volume</li>
+            <li><b>Monte Carlo</b>:
+                <ol>
+                    <li>Sample in overlapping bounding box</li>
+                    <li>Check points inside both meshes</li>
+                    <li>Volume ≈ (ratio of overlapping points) × (box volume)</li>
+                </ol>
+            </li>
+        </ul>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page2">
+        <h3>Sphere Approximation</h3>
+        <ul>
+            <li><b>Constraints</b>: Spheres inside mesh, fixed number N, same radius</li>
+            <li><b>Goal</b>: Maximize union of sphere volumes</li>
+            <li><b>Greedy Algorithm</b>:
+                <ol>
+                    <li>Place first sphere at deepest point</li>
+                    <li>Iteratively place next sphere at furthest point from existing spheres</li>
+                </ol>
+            </li>
+            <li><b>Coverage Calculation</b>: Use inclusion-exclusion principle
+                <br>Volume = \(\sum_i V_i - \sum_{i<j} V_{i,j} + \sum_{i<j<k} V_{i,j,k} - ...\)
+                <br>where \(V_{i,j,...}\) is the volume of intersection of spheres i, j, ...
+            </li>
+            <li><b>Sphere-Sphere Intersection</b>:
+                <br>When distance \(d < r_1+r_2\):
+                <br>\(V_{overlap} = \frac{\pi(r_1+r_2-d)^2(d^2+2d(r_1+r_2)-3(r_1-r_2)^2)}{12d}\)
+            </li>
+        </ul>
+
+        <h2>5. Volume Rendering</h2>
+
+        <h3>Ray Generation</h3>
+        <ul>
+            <li><b>Pixels to Rays</b>: Transform pixel coordinates to world space rays</li>
+            <li><b>Ray Bundle</b>: Contains origins, directions, sample points, sample lengths</li>
+        </ul>
+
+        <h3>Point Sampling Along Rays</h3>
+        <ul>
+            <li><b>Stratified Sampler</b>: Uniformly sample points between near and far planes
+                <ol>
+                    <li>Generate uniform distances \(t_i \in [t_{near}, t_{far}]\)</li>
+                    <li>Compute points: \(\mathbf{x}_i = \mathbf{o} + t_i\mathbf{d}\) (origin + distance × direction)</li>
+                </ol>
+            </li>
+        </ul>
+
+        <h3>Volume Integration</h3>
+        <ul>
+            <li><b>Transmittance</b>: \(T(a,b) = \exp(-\int_a^b \sigma(t)dt)\) ≈ \(\prod_{i=a}^{b-1} \exp(-\sigma_i\delta_i)\)</li>
+            <li><b>Weight Calculation</b>: \(w_i = T(t_0, t_i)(1 - \exp(-\sigma_i\delta_i))\)</li>
+            <li><b>Color Integration</b>: \(C = \sum_{i=1}^n w_i c_i\) (weighted sum of colors)</li>
+            <li><b>Depth Integration</b>: \(D = \sum_{i=1}^n w_i t_i\) (weighted sum of distances)</li>
+        </ul>
+
+        <h3>Neural Radiance Fields (NeRF)</h3>
+        <ul>
+            <li><b>Inputs</b>: 3D position \(\mathbf{x}\) and viewing direction \(\mathbf{d}\)</li>
+            <li><b>Outputs</b>: RGB color \(\mathbf{c}\) and density \(\sigma\)</li>
+            <li><b>Process</b>: 
+                <ol>
+                    <li>Positional encoding of inputs</li>
+                    <li>MLP to predict density (from position)</li>
+                    <li>MLP to predict color (from position and direction)</li>
+                    <li>Render with volume integration</li>
+                </ol>
+            </li>
+        </ul>
+
+        <h2>6. Single Image to 3D</h2>
+
+        <h3>Distance Metrics for Point Clouds</h3>
+        <ul>
+            <li><b>Chamfer Distance (CD)</b>:
+                <br>\(d_{CD}(P, Q) = \frac{1}{|P|}\sum_{p \in P}\min_{q \in Q}||p-q||^2 + \frac{1}{|Q|}\sum_{q \in Q}\min_{p \in P}||q-p||^2\)
+            </li>
+            <li><b>Hausdorff Distance (HD)</b>:
+                <br>\(d_{HD}(P, Q) = \max\{d(P,Q), d(Q,P)\}\)
+                <br>where \(d(P,Q) = \max_{p \in P}[\min_{q \in Q}||p-q||]\)
+            </li>
+            <li><b>CD vs HD</b>: CD is more robust to noise, HD enforces complete coverage</li>
+        </ul>
+
+        <h3>Network Architectures</h3>
+        <ul>
+            <li><b>Encoder-Decoder Design</b>:
+                <ol>
+                    <li>CNN encoder: image → latent vector</li>
+                    <li>MLP decoder: latent vector → 3D point cloud</li>
+                </ol>
+            </li>
+            <li><b>Key Components</b>:
+                <ul>
+                    <li>Positional encoding</li>
+                    <li>Skip connections</li>
+                    <li>Multi-scale feature fusion</li>
+                </ul>
+            </li>
+        </ul>
+
+        <h2>7. Surface Reconstruction</h2>
+
+        <h3>Deep Marching Tetrahedra (DMTet)</h3>
+        <ul>
+            <li><b>Representation</b>: Tetrahedral grid with SDF values and deformations</li>
+            <li><b>Process</b>: 
+                <ol>
+                    <li>Initialize tetrahedral grid</li>
+                    <li>Optimize SDF values and vertex positions</li>
+                    <li>Extract mesh using marching tetrahedra</li>
+                </ol>
+            </li>
+        </ul>
+
+        <h3>Marching Tetrahedra Algorithm</h3>
+        <ul>
+            <li><b>Input</b>: Tetrahedral grid with SDF values at vertices</li>
+            <li><b>Cases</b>:
+                <ol>
+                    <li>All vertices same sign → No surface</li>
+                    <li>Three negative, one positive → One triangle</li>
+                    <li>Two positive, two negative → Two triangles</li>
+                </ol>
+            </li>
+            <li><b>Edge Intersection</b>: \(v_{ab} = \frac{v_a \cdot s(v_b) - v_b \cdot s(v_a)}{s(v_b) - s(v_a)}\)</li>
+        </ul>
+
+        <h3>Optimization for Surface Reconstruction</h3>
+        <ul>
+            <li><b>SDF and Deformation Parameterization</b>:
+                <ol>
+                    <li>MLP: vertex position → SDF value and deformation</li>
+                    <li>3D Conv: grid → SDF values and deformations</li>
+                </ol>
+            </li>
+            <li><b>Loss Functions</b>:
+                <ol>
+                    <li>Chamfer Distance loss: mesh ↔ input point cloud</li>
+                    <li>Laplacian regularization: improve smoothness</li>
+                </ol>
+            </li>
+        </ul>
+
+        <h3>Laplacian Regularization</h3>
+        <ul>
+            <li><b>Purpose</b>: Enforce mesh smoothness</li>
+            <li><b>Implementation</b>: Minimize vertex displacement from weighted neighborhood average</li>
+            <li><b>Formula</b>: \(L_{reg} = \frac{1}{|V|}\sum_{v \in V}||\Delta v||^2\) where \(\Delta v\) is the Laplacian at vertex v</li>
+        </ul>
+    </div>
+</body>
+</html> 
