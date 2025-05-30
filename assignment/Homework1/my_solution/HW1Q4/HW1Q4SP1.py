@@ -3,6 +3,24 @@ import numpy as np
 import time
 import os
 
+# Add visualization imports
+try:
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.mplot3d import Axes3D
+    MATPLOTLIB_AVAILABLE = True
+    print("matplotlib library found. Will generate voxelization plots.")
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+    print("matplotlib library not found. Voxelization plots will not be generated.")
+
+try:
+    import open3d as o3d
+    OPEN3D_AVAILABLE = True
+    print("open3d library found. Will generate 3D visualizations.")
+except ImportError:
+    OPEN3D_AVAILABLE = False
+    print("open3d library not found. 3D visualizations will not be generated.")
+
 # --- Configuration ---
 # Adjust MESH_DIR if your 'objs_approx' folder is located elsewhere relative to this script.
 # Assumes this script is in a 'my_solution' type folder, and 'objs_approx' is a sibling to its parent.
@@ -15,6 +33,10 @@ VOXEL_RESOLUTIONS_DIVISIONS = [32, 64, 128, 192] # Reduced 256 due to potential 
 
 # Number of samples for SDF + Monte Carlo.
 MONTE_CARLO_SAMPLE_COUNTS = [1000, 2000, 5000, 10000] # Reduced 1M for quicker runs
+
+# Visualization settings
+ENABLE_VOXEL_VISUALIZATION = True  # Set to False to disable visualization
+VISUALIZATION_OUTPUT_DIR = "./voxelization_debug"
 
 # Attempt to import psutil for memory tracking
 PSUTIL_AVAILABLE = False
@@ -50,6 +72,195 @@ def get_mesh_files(directory):
         print(f"Found meshes: {mesh_files}")
     return mesh_files
 
+# --- Visualization Functions ---
+def create_output_directory():
+    """Create output directory for visualizations."""
+    if not os.path.exists(VISUALIZATION_OUTPUT_DIR):
+        os.makedirs(VISUALIZATION_OUTPUT_DIR)
+        print(f"Created visualization output directory: {VISUALIZATION_OUTPUT_DIR}")
+
+def visualize_voxel_grid_matplotlib(voxel_grid, mesh_name, resolution_divisions, pitch):
+    """Visualize voxel grid using matplotlib."""
+    if not MATPLOTLIB_AVAILABLE or not ENABLE_VOXEL_VISUALIZATION:
+        return
+    
+    try:
+        create_output_directory()
+        
+        # Get filled voxel coordinates
+        filled_coords = np.array(np.where(voxel_grid.matrix)).T
+        
+        if len(filled_coords) == 0:
+            print(f"Warning: No filled voxels found for {mesh_name} at resolution {resolution_divisions}")
+            return
+        
+        # Create 3D scatter plot
+        fig = plt.figure(figsize=(12, 10))
+        ax = fig.add_subplot(111, projection='3d')
+        
+        # Plot filled voxels
+        ax.scatter(filled_coords[:, 0], filled_coords[:, 1], filled_coords[:, 2], 
+                  c='red', alpha=0.6, s=1, label=f'Filled Voxels ({len(filled_coords)})')
+        
+        # Set labels and title
+        ax.set_xlabel('X Voxels')
+        ax.set_ylabel('Y Voxels')
+        ax.set_zlabel('Z Voxels')
+        ax.set_title(f'Voxelization of {mesh_name}\nResolution: {resolution_divisions}, Pitch: {pitch:.6f}')
+        ax.legend()
+        
+        # Save plot
+        output_file = os.path.join(VISUALIZATION_OUTPUT_DIR, 
+                                 f"{mesh_name}_voxels_res{resolution_divisions}.png")
+        plt.savefig(output_file, dpi=150, bbox_inches='tight')
+        print(f"  Saved voxel visualization: {output_file}")
+        plt.close()
+        
+        # Create cross-section views
+        create_voxel_cross_sections(voxel_grid, mesh_name, resolution_divisions, pitch)
+        
+    except Exception as e:
+        print(f"Error creating matplotlib visualization for {mesh_name}: {e}")
+
+def create_voxel_cross_sections(voxel_grid, mesh_name, resolution_divisions, pitch):
+    """Create cross-section views of the voxel grid."""
+    if not MATPLOTLIB_AVAILABLE:
+        return
+    
+    try:
+        matrix = voxel_grid.matrix
+        shape = matrix.shape
+        
+        # Create cross-sections at the middle of each dimension
+        mid_x, mid_y, mid_z = shape[0]//2, shape[1]//2, shape[2]//2
+        
+        fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+        
+        # XY plane (Z = mid_z)
+        xy_slice = matrix[:, :, mid_z]
+        axes[0].imshow(xy_slice.T, origin='lower', cmap='Reds', alpha=0.8)
+        axes[0].set_title(f'XY Cross-section (Z={mid_z})')
+        axes[0].set_xlabel('X Voxels')
+        axes[0].set_ylabel('Y Voxels')
+        
+        # XZ plane (Y = mid_y)
+        xz_slice = matrix[:, mid_y, :]
+        axes[1].imshow(xz_slice.T, origin='lower', cmap='Reds', alpha=0.8)
+        axes[1].set_title(f'XZ Cross-section (Y={mid_y})')
+        axes[1].set_xlabel('X Voxels')
+        axes[1].set_ylabel('Z Voxels')
+        
+        # YZ plane (X = mid_x)
+        yz_slice = matrix[mid_x, :, :]
+        axes[2].imshow(yz_slice.T, origin='lower', cmap='Reds', alpha=0.8)
+        axes[2].set_title(f'YZ Cross-section (X={mid_x})')
+        axes[2].set_xlabel('Y Voxels')
+        axes[2].set_ylabel('Z Voxels')
+        
+        plt.suptitle(f'Cross-sections of {mesh_name} (Res: {resolution_divisions})')
+        plt.tight_layout()
+        
+        output_file = os.path.join(VISUALIZATION_OUTPUT_DIR, 
+                                 f"{mesh_name}_cross_sections_res{resolution_divisions}.png")
+        plt.savefig(output_file, dpi=150, bbox_inches='tight')
+        print(f"  Saved cross-section visualization: {output_file}")
+        plt.close()
+        
+    except Exception as e:
+        print(f"Error creating cross-section visualization: {e}")
+
+def visualize_mesh_and_voxels_open3d(mesh, voxel_grid, mesh_name, resolution_divisions):
+    """Visualize original mesh and voxel grid together using Open3D."""
+    if not OPEN3D_AVAILABLE or not ENABLE_VOXEL_VISUALIZATION:
+        return
+    
+    try:
+        create_output_directory()
+        
+        # Convert trimesh to open3d mesh
+        o3d_mesh = o3d.geometry.TriangleMesh()
+        o3d_mesh.vertices = o3d.utility.Vector3dVector(mesh.vertices)
+        o3d_mesh.triangles = o3d.utility.Vector3iVector(mesh.faces)
+        o3d_mesh.paint_uniform_color([0.7, 0.7, 0.7])  # Gray color
+        o3d_mesh.compute_vertex_normals()
+        
+        # Convert voxel grid to point cloud
+        filled_coords = np.array(np.where(voxel_grid.matrix)).T
+        
+        if len(filled_coords) == 0:
+            print(f"Warning: No filled voxels to visualize for {mesh_name}")
+            return
+        
+        # Convert voxel indices to world coordinates
+        # Each voxel center is at: origin + (index + 0.5) * pitch
+        voxel_centers = []
+        for coord in filled_coords:
+            # Convert from voxel indices to world coordinates
+            world_coord = voxel_grid.origin + (coord + 0.5) * voxel_grid.pitch
+            voxel_centers.append(world_coord)
+        
+        voxel_points = np.array(voxel_centers)
+        
+        # Create point cloud for voxels
+        voxel_pcd = o3d.geometry.PointCloud()
+        voxel_pcd.points = o3d.utility.Vector3dVector(voxel_points)
+        voxel_pcd.paint_uniform_color([1.0, 0.0, 0.0])  # Red color
+        
+        # Save visualization
+        output_file = os.path.join(VISUALIZATION_OUTPUT_DIR, 
+                                 f"{mesh_name}_mesh_and_voxels_res{resolution_divisions}.ply")
+        
+        # Combine geometries and save
+        combined_geometry = [o3d_mesh, voxel_pcd]
+        
+        print(f"  Open3D visualization ready for {mesh_name} (Res: {resolution_divisions})")
+        print(f"  Original mesh: {len(mesh.vertices)} vertices, {len(mesh.faces)} faces")
+        print(f"  Voxel points: {len(voxel_points)} filled voxels")
+        
+        # Optionally save the point cloud
+        o3d.io.write_point_cloud(output_file.replace('.ply', '_voxels.ply'), voxel_pcd)
+        print(f"  Saved voxel point cloud: {output_file.replace('.ply', '_voxels.ply')}")
+        
+    except Exception as e:
+        print(f"Error creating Open3D visualization for {mesh_name}: {e}")
+
+def analyze_voxelization_quality(mesh, voxel_grid, mesh_name, resolution_divisions, pitch):
+    """Analyze the quality of voxelization and print diagnostic information."""
+    print(f"\n  === Voxelization Quality Analysis for {mesh_name} ===")
+    
+    # Basic voxel grid info
+    print(f"  Voxel Grid Shape: {voxel_grid.shape}")
+    print(f"  Total Voxels: {np.prod(voxel_grid.shape):,}")
+    print(f"  Filled Voxels: {voxel_grid.filled_count:,}")
+    print(f"  Fill Ratio: {voxel_grid.filled_count / np.prod(voxel_grid.shape):.4f}")
+    
+    # Mesh properties
+    print(f"  Original Mesh Bounds: {mesh.bounds}")
+    print(f"  Mesh Extents: {mesh.extents}")
+    print(f"  Mesh Volume (trimesh): {mesh.volume:.6f}")
+    print(f"  Mesh Surface Area: {mesh.area:.6f}")
+    print(f"  Mesh is Watertight: {mesh.is_watertight}")
+    
+    # Voxel grid properties
+    print(f"  Voxel Grid Bounds: {voxel_grid.bounds}")
+    print(f"  Voxel Pitch: {pitch:.6f}")
+    print(f"  Voxel Volume: {pitch**3:.8f}")
+    
+    # Volume comparison
+    estimated_volume = voxel_grid.filled_count * (pitch ** 3)
+    if mesh.volume > 0:
+        volume_error = abs(estimated_volume - mesh.volume) / mesh.volume * 100
+        print(f"  Volume Error: {volume_error:.2f}%")
+    
+    # Check for potential issues
+    if voxel_grid.filled_count == 0:
+        print("  WARNING: No voxels are filled! This suggests a problem with voxelization.")
+    elif voxel_grid.filled_count == np.prod(voxel_grid.shape):
+        print("  WARNING: All voxels are filled! This might indicate incorrect voxelization.")
+    
+    if not mesh.is_watertight:
+        print("  NOTE: Mesh is not watertight, which may affect voxelization accuracy.")
+
 # --- Volume Estimation Methods ---
 def estimate_volume_voxelization(mesh, mesh_name, resolution_divisions):
     """
@@ -78,16 +289,24 @@ def estimate_volume_voxelization(mesh, mesh_name, resolution_divisions):
         
         pitch = mesh.extents.max() / resolution_divisions
         
-        # Voxelize the mesh
+        # Voxelize the mesh (this creates surface voxelization)
         voxel_grid = mesh.voxelized(pitch=pitch)
 
-        if PSUTIL_AVAILABLE:
-            process = psutil.Process(os.getpid())
-            current_rss_mb = process.memory_info().rss / (1024 * 1024) # Convert bytes to MB
-        
         if not isinstance(voxel_grid, trimesh.voxel.VoxelGrid):
              print(f"Failed to voxelize mesh {mesh_name}. Result was not a VoxelGrid.")
              return None, None, time.time() - start_time, None, current_rss_mb
+
+        # Get surface voxel count for comparison
+        surface_filled_count = voxel_grid.filled_count
+        print(f"  Surface Voxels (before fill): {surface_filled_count}")
+        
+        # IMPORTANT: Fill the voxel grid to create a solid volume
+        # This converts the surface voxelization to a solid, filled voxelization
+        voxel_grid.fill()
+        
+        if PSUTIL_AVAILABLE:
+            process = psutil.Process(os.getpid())
+            current_rss_mb = process.memory_info().rss / (1024 * 1024) # Convert bytes to MB
 
         filled_count = voxel_grid.filled_count
         volume_per_voxel = pitch ** 3
@@ -100,11 +319,18 @@ def estimate_volume_voxelization(mesh, mesh_name, resolution_divisions):
         
         print(f"  Actual Voxel Grid Shape: {actual_resolution}")
         print(f"  Calculated Pitch: {pitch:.6f}")
-        print(f"  Filled Voxels: {filled_count}")
+        print(f"  Filled Voxels (after fill): {filled_count}")
+        print(f"  Fill Ratio Increase: {filled_count / surface_filled_count:.2f}x" if surface_filled_count > 0 else "")
         print(f"  Estimated Volume: {estimated_volume:.6f}")
         if current_rss_mb is not None:
             print(f"  Memory RSS after voxelization: {current_rss_mb:.2f} MB")
         print(f"  Computation Time: {computation_time:.4f} seconds")
+        
+        # Add visualization and analysis
+        if ENABLE_VOXEL_VISUALIZATION:
+            analyze_voxelization_quality(mesh, voxel_grid, mesh_name, resolution_divisions, pitch)
+            visualize_voxel_grid_matplotlib(voxel_grid, mesh_name, resolution_divisions, pitch)
+            visualize_mesh_and_voxels_open3d(mesh, voxel_grid, mesh_name, resolution_divisions)
         
         return estimated_volume, computation_time, pitch, actual_resolution, current_rss_mb
 
@@ -139,8 +365,27 @@ def estimate_volume_sdf_monte_carlo(mesh, mesh_name, num_samples):
         random_points = random_points * bbox_dims + min_bound
 
         # 3. Compute SDF and classify points using trimesh.proximity.signed_distance
+        # Process in batches to reduce memory usage
+        batch_size = 1000
         signed_distances_start = time.time()
-        signed_distances = trimesh.proximity.signed_distance(mesh, random_points)
+        
+        # Initialize array to store all signed distances
+        signed_distances = np.zeros(num_samples)
+        
+        # Process points in batches
+        for i in range(0, num_samples, batch_size):
+            end_idx = min(i + batch_size, num_samples)
+            batch_points = random_points[i:end_idx]
+            
+            # Compute signed distances for this batch
+            batch_signed_distances = trimesh.proximity.signed_distance(mesh, batch_points)
+            signed_distances[i:end_idx] = batch_signed_distances
+            
+            # Optional: Print progress for large datasets
+            if num_samples > 10000 and (i // batch_size) % 10 == 0:
+                progress = (end_idx / num_samples) * 100
+                print(f"    Batch progress: {progress:.1f}% ({end_idx}/{num_samples} points)")
+        
         signed_distances_time = time.time() - signed_distances_start
 
         if PSUTIL_AVAILABLE:
@@ -395,3 +640,54 @@ def generate_markdown_report(all_results, report_filename="volume_estimation_rep
 
 if __name__ == "__main__":
     main()
+
+# --- Debug/Test Function ---
+def test_single_mesh_voxelization(mesh_filename="bunny.obj", target_resolution=32):
+    """
+    Test voxelization on a single mesh with visualization for debugging.
+    This is useful for quickly checking voxelization issues.
+    """
+    print(f"\n=== DEBUGGING VOXELIZATION FOR {mesh_filename} ===")
+    
+    mesh_path = os.path.join(MESH_DIR, mesh_filename)
+    if not os.path.exists(mesh_path):
+        print(f"Error: Mesh file {mesh_path} not found.")
+        available_files = get_mesh_files(MESH_DIR)
+        if available_files:
+            print(f"Available files: {available_files}")
+        return
+    
+    try:
+        # Load mesh
+        print(f"Loading mesh: {mesh_path}")
+        mesh = trimesh.load_mesh(mesh_path, process=True)
+        print(f"Mesh loaded successfully:")
+        print(f"  Vertices: {len(mesh.vertices)}")
+        print(f"  Faces: {len(mesh.faces)}")
+        print(f"  Watertight: {mesh.is_watertight}")
+        print(f"  Volume (trimesh): {mesh.volume:.6f}")
+        print(f"  Bounds: {mesh.bounds}")
+        print(f"  Extents: {mesh.extents}")
+        
+        # Test voxelization with visualization enabled
+        global ENABLE_VOXEL_VISUALIZATION
+        ENABLE_VOXEL_VISUALIZATION = True
+        
+        volume, comp_time, pitch, actual_res, memory_rss = estimate_volume_voxelization(
+            mesh, mesh_filename, target_resolution
+        )
+        
+        if volume is not None:
+            print(f"\nVoxelization completed successfully!")
+            print(f"Estimated volume: {volume:.6f}")
+            print(f"Volume error: {abs(volume - mesh.volume) / mesh.volume * 100:.2f}%")
+        else:
+            print(f"\nVoxelization failed!")
+            
+    except Exception as e:
+        print(f"Error during test: {e}")
+        import traceback
+        traceback.print_exc()
+
+# Uncomment the line below to run a quick test on a single mesh:
+# test_single_mesh_voxelization("bunny.obj", 64)
