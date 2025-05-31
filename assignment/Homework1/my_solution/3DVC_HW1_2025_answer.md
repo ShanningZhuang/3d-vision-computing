@@ -1155,3 +1155,56 @@ can overlap with each other.
 **Deliverables.** 1) Code for sphere placement and coverage calculation. 2)
 Report analyzing coverage and efficiency under various problem settings with
 different maximum number $N$ and sphere radius. 3) Results with visualizations.
+
+## Results and Visualizations
+
+### Sub Problem 1: Mesh Volume Estimation Results
+
+#### Voxelization Results
+The following images show the voxelization results for the apple mesh at different resolutions:
+
+**Resolution 64:**
+![Apple Voxelization - Resolution 64](HW1Q4/result/apple.obj_voxels_res64.png)
+
+**Resolution 192:**
+![Apple Voxelization - Resolution 192](HW1Q4/result/apple.obj_voxels_res192.png)
+
+#### Cross-Section Analysis
+Cross-sectional views of the voxelized mesh help visualize the internal structure:
+
+**Cross-sections at Resolution 64:**
+![Apple Cross-sections - Resolution 64](HW1Q4/result/apple.obj_cross_sections_res64.png)
+
+**Cross-sections at Resolution 192:**
+![Apple Cross-sections - Resolution 192](HW1Q4/result/apple.obj_cross_sections_res192.png)
+
+### Sub Problem 2: Mesh Intersection Volume Estimation Results
+
+The following visualizations show different intersection scenarios between the apple and bunny meshes:
+
+**No Intersection:**
+![Apple-Bunny No Intersection](HW1Q4/result/apple.obj_bunny.obj_no_intersection.png)
+
+**Medium Intersection:**
+![Apple-Bunny Medium Intersection](HW1Q4/result/apple.obj_bunny.obj_medium_intersection.png)
+
+**Maximum Intersection:**
+![Apple-Bunny Maximum Intersection](HW1Q4/result/apple.obj_bunny.obj_max_intersection.png)
+
+### Sub Problem 3: Shape Approximation with Spheres Results
+
+#### Greedy Algorithm Results
+
+**200 Spheres with radius 0.006:**
+![Apple Greedy Approximation - 200 spheres](HW1Q4/result/apple_Greedy_spheres_200_r0.006.png)
+
+**1000 Spheres with radius 0.006:**
+![Apple Greedy Approximation - 1000 spheres](HW1Q4/result/apple_Greedy_spheres_1000_r0.006.png)
+
+#### Optimization Algorithm Results
+
+**200 Spheres with radius 0.006:**
+![Apple Optimization Approximation - 200 spheres](HW1Q4/result/apple_Optimization_spheres_200_r0.006.png)
+
+**1000 Spheres with radius 0.006:**
+![Apple Optimization Approximation - 1000 spheres](HW1Q4/result/apple_Optimization_spheres_1000_r0.006.png)
