@@ -23,10 +23,32 @@ class VolumeRenderer(torch.nn.Module):
         eps: float = 1e-10
     ):
         # TODO (4): Compute transmittance using the equation described in the README
-        pass
+        # From NeRF paper: T_i = exp(-Σ[j=1 to i-1] σ_j δ_j)
+        # This is equivalent to: T_i = Π[j=1 to i-1] exp(-σ_j δ_j) = Π[j=1 to i-1] (1 - α_j)
+        # where α_j = 1 - exp(-σ_j δ_j)
 
-        # TODO (4): Compute weight used for rendering from transmittance and density
-        pass
+        # Compute alpha values: α_i = 1 - exp(-σ_i * δ_i)
+        alpha = 1.0 - torch.exp(-rays_density * deltas)  # (batch, n_pts, 1)
+
+        # Flatten channel dimension
+        alpha = alpha[..., 0]  # (batch, n_pts)
+
+        # Compute 1 - alpha plus eps
+        alpha_comp = 1.0 - alpha + eps  # (batch, n_pts)
+
+        # Prepend 1 for T_1 = 1
+        ones = torch.ones((alpha_comp.shape[0], 1), device=alpha.device)  # (batch, 1)
+        alpha_shifted = torch.cat([ones, alpha_comp], dim=1)  # (batch, n_pts+1)
+
+        # Cumulative product to get T for each sample, then remove last element
+        transmittance_all = torch.cumprod(alpha_shifted, dim=1)  # (batch, n_pts+1)
+        transmittance = transmittance_all[:, :-1]  # (batch, n_pts)
+
+        # Restore channel dimension
+        transmittance = transmittance.unsqueeze(-1)  # (batch, n_pts, 1)
+
+        # Compute weight: w_i = T_i * α_i
+        weights = transmittance * alpha.unsqueeze(-1)  # (batch, n_pts, 1)
 
         return weights
     
@@ -36,7 +58,8 @@ class VolumeRenderer(torch.nn.Module):
         rays_feature: torch.Tensor
     ):
         # TODO (4): Aggregate (weighted sum of) features using weights
-        pass
+        # L(x, ω) = Σ(wi * Le(xi, ω))
+        feature = torch.sum(weights * rays_feature, dim=-2)
 
         return feature
 
@@ -80,10 +103,23 @@ class VolumeRenderer(torch.nn.Module):
             )
 
             # TODO (4): Render (color) features using weights
-            pass
+            feature = self._aggregate(
+                weights.view(-1, n_pts, 1),
+                feature.view(-1, n_pts, 3)
+            )
 
             # TODO (4): Render depth map
-            pass
+            # Depth is computed as weighted average of sample depths
+            depth = self._aggregate(
+                weights.view(-1, n_pts, 1),
+                depth_values.view(-1, n_pts, 1)
+            )
+
+            # Add white background if specified
+            if self._white_background:
+                # Compute accumulated alpha (opacity)
+                acc_alpha = torch.sum(weights.view(-1, n_pts, 1), dim=-2)
+                feature = feature + (1.0 - acc_alpha) * torch.ones_like(feature)
 
             # Return
             cur_out = {

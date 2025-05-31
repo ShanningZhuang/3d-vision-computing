@@ -100,18 +100,22 @@ def render_images(
 
         # TODO (1): Visualize xy grid using vis_grid
         if cam_idx == 0 and file_prefix == '':
-            pass
+            grid_vis = vis_grid(xy_grid, image_size)
+            plt.imsave('images/grid_vis.png', grid_vis)
 
         # TODO (1): Visualize rays using vis_rays
         if cam_idx == 0 and file_prefix == '':
-            pass
+            ray_vis = vis_rays(ray_bundle, image_size)
+            plt.imsave('images/ray_vis.png', ray_vis)
         
         # TODO (2): Implement point sampling along rays in sampler.py
-        pass
+        ray_bundle = model.sampler(ray_bundle)
 
         # TODO (2): Use render_points to visualize sample points as point cloud
         if cam_idx == 0 and file_prefix == '':
-            pass
+            # Get sample points and reshape for visualization
+            sample_points = ray_bundle.sample_points.view(-1, 3)  # Flatten to (N, 3)
+            render_points('images/point_vis.png', sample_points.unsqueeze(0), image_size=256)
 
         # TODO (4): Implement rendering in renderer.py
         out = model(ray_bundle)
@@ -126,7 +130,15 @@ def render_images(
 
         # TODO (4) (optional): Visualize depth
         if cam_idx == 2 and file_prefix == '':
-            pass
+            # Visualize depth map
+            depth_map = np.array(
+                out['depth'].view(
+                    image_size[1], image_size[0]
+                ).detach().cpu()
+            )
+            # Normalize depth for visualization
+            depth_normalized = (depth_map - depth_map.min()) / (depth_map.max() - depth_map.min())
+            plt.imsave('images/depth_vis.png', depth_normalized, cmap='viridis')
 
         # Save
         if save:

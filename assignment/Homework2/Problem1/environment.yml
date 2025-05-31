@@ -15,6 +15,7 @@ dependencies:
   - pytorch
   - pytorch3d=0.6.1
   - torchvision
+  - mkl==2024.0
   - fvcore
   - iopath
   - nvidiacub
