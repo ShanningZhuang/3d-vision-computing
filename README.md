@@ -1,5 +1,7 @@
 # 3D Vision Computing
 
+This course is taught by [@Li Yi](https://ericyi.github.io/).
+
 This repository contains learning materials for the 3D Vision Computing course.
 
 ## Course Overview
@@ -12,6 +14,24 @@ This repository contains learning materials for the 3D Vision Computing course.
 - 3D object detection and recognition
 - Neural rendering
 - 3D scene understanding
+
+## Syllabus
+
+- **Lecture 1:** Introduction to 3D Vision
+- **Lecture 2:** 3D Representations
+- **Lecture 3:** 3D Transformations
+- **Lecture 4:** Structure from Motion (SfM)
+- **Lecture 5:** Multi-view Stereo (MVS)
+- **Lecture 6:** Neural Radiance Fields (NeRF)
+- **Lecture 7:** From a Single Image to a 3D Model
+- **Lecture 8:** Surface Completion
+- **Lecture 9:** 3D Generation
+- **Lecture 10:** 3D Backbones
+- **Lecture 11:** 3D Backbones II
+- **Lecture 12:** 3D Detection and Segmentation
+- **Lecture 13:** 6D Pose Estimation
+- **Lecture 14:** Camera Intrinsics
+- **Lecture 15:** Deformable Models
 
 ## Course Resources
 
