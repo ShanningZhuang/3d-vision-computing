@@ -50,22 +50,42 @@ This objective trains the network `ε_θ` to predict the noise `ε` that was add
 
 ## 2. Implementation Details
 
-In this section, you should:
-- Mention the open-source implementation you based your work on (if any), and provide a link to the repository.
-- Describe your computing environment (e.g., GPU model, major libraries like PyTorch and their versions).
+This project is based on the official implementation provided by the authors of the paper. The original source code is available at: [https://github.com/luost26/diffusion-point-cloud](https://github.com/luost26/diffusion-point-cloud).
+
+Our forked version of the repository, containing any modifications made during this project, can be found at: [https://github.com/ShanningZhuang/diffusion-point-cloud.git](https://github.com/ShanningZhuang/diffusion-point-cloud.git).
+
+### 2.1. Hyperparameters
+
+The following key hyperparameters were used for training, based on the default settings in the `train_gen.py` script:
+
+- **Model:** `flow`
+- **Latent Dimension:** `256`
+- **Diffusion Timesteps (`num_steps`):** `100`
+- **Noise Schedule (`beta_1`, `beta_T`):** Linear from `1e-4` to `0.02`
+- **Learning Rate:** `2e-3`
+- **Batch Size:** `128`
+- **Optimizer:** Adam with `weight_decay=0`
+
+### 2.2. Computing Environment
+
+The experiments were conducted on a server running a Linux-based operating system. The primary deep learning framework used was PyTorch. The environment was set up according to the `env.yml` file provided in the repository.
+
+- **Operating System:** Linux (Kernel version 6.8.0-60-generic)
+- **GPU:** NVIDIA GeForce RTX 4090 D
+- **PyTorch Version:** 1.13.1+cu117
+- **CUDA Version:** 11.7
 
 ## 3. Experiments
 
 ### 3.1. Dataset
 
-In this section, you should:
-- Describe the dataset used. The project requires using ShapeNet.
-- Specify the four categories you experimented on:
-    - Airplane (02691156)
-    - Bag (02773838)
-    - Table (04379243)
-    - Car (02958343)
-- Mention any pre-processing steps you performed on the data (e.g., how you sampled points from meshes, normalization).
+The experiments were conducted using the ShapeNet dataset. The baseline model's data loading pipeline is designed for the HDF5 format, which packages pre-sampled point clouds for efficient loading. To accommodate this, we used a pre-processed HDF5 version of ShapeNetV2 sourced from the following repository: [https://github.com/antao97/PointCloudDatasets](https://github.com/antao97/PointCloudDatasets). This dataset provides normalized point clouds sampled from the original meshes.
+
+Following the project requirements, we focused on four categories for our experiments:
+- Airplane (02691156)
+- Bag (02773838)
+- Table (04379243)
+- Car (02958343)
 
 ### 3.2. Evaluation Metrics
 
