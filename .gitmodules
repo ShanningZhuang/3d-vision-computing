@@ -1,6 +1,3 @@
 [submodule "assignment/final_project/diffusion-point-cloud"]
 	path = assignment/final_project/diffusion-point-cloud
 	url = https://github.com/ShanningZhuang/diffusion-point-cloud.git
-[submodule "assignment/final_project/PVD"]
-	path = assignment/final_project/PVD
-	url = https://github.com/ShanningZhuang/PVD.git
